@@ -14,6 +14,8 @@ Async-Transformers is a tiny no-frills no-dependencies ts-first implementation o
 
 ![Overview of async transformer functionality](./assets/async-transformers.png)
 
+The method `asyncBufferedTransformer()` was inspired by [`rust futures buffered()`](https://docs.rs/futures/latest/futures/stream/trait.StreamExt.html#method.buffered).
+
 ## Usage
 
 ```typescript
