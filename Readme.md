@@ -1,5 +1,7 @@
 # Async Transformers
 
+![lint/build/test](https://github.com/understand-ai/async-transformers/actions/workflows/node.js.yml/badge.svg)
+
 We find node.js [streams](https://nodejs.org/api/stream.html) are hard to use and implementing them correctly yourself adds a lot of boilerplate.
 
 Once you have implemented a fully-compliant stream interface you will also find that actually executing parts of the streamed-processing-chain in parallel, e.g. io-bound tasks like network requests, is not supported out-of-the-box by node.js
