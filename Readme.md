@@ -16,42 +16,89 @@ Async-Transformers is a tiny no-frills no-dependencies ts-first implementation o
 
 ![Overview of async transformer functionality](./assets/async-transformers.png)
 
-The method `asyncBufferedTransformer()` was inspired by [`rust futures buffered()`](https://docs.rs/futures/latest/futures/stream/trait.StreamExt.html#method.buffered).
+The method `asyncBufferedTransformer()` was inspired by [rust futures `buffered()`](https://docs.rs/futures/latest/futures/stream/trait.StreamExt.html#method.buffered).
 
-## Usage
+## Example
+
+Here's an example that downloads all status code images from [http.cat](https://http.cat), but only 7 at a time to be a good
+internet citizen.
+
+You can run this using `npx ts-node examples/fetch-http-cats.ts`
+
+(Note: this library does _not_ depend on nodejs (and has zero dependencies), just this example)
 
 ```typescript
-import {asyncBufferedTransformer, drainStream, PromiseWrapper, collectAll} from '@uai/async-transformers';
+import { PromiseWrapper, asyncBufferedTransformer } from "../dist";
+import fetch from "node-fetch";
 
-type SomeStreamChunkToProcess = {};
+async function* streamAllHttpCats(): AsyncIterable<
+  PromiseWrapper<{
+    status: number;
+    responseStatus: number;
+    body: ArrayBuffer | undefined;
+  }>
+> {
+  for (let status = 100; status < 600; status += 1) {
+    // Note the wrapping into an object with the `promise` property
+    yield {
+      promise: (async () => {
+        console.log(`Fetching http cat for status ${status}`);
+        const response = await fetch(`https://http.cat/${status}`);
+        return {
+          status,
+          responseStatus: response.status,
+          body: response.ok ? await response.arrayBuffer() : undefined,
+        };
+      })(),
+    };
+  }
+}
 
-async function* yourAsyncGenerator(inputStream: AsyncIterable<SomeStreamChunkToProcess>): AsyncIterable<PromiseWrapper<number>> {
-    let i = 0;
-    for await (const inputChunk of inputStream) {
-        const nextOutput = i;
-        yield {
-            promise: new Promise((resolve) =>
-                // do the expensive processing / io-requests, can of course also deal with an async function
-                resolve(nextOutput)
-            )
-        }
-        i++;
+const main = async () => {
+  // must be >= 2 for the parallel execution to make sense (otherwise throws an Error)
+  const numberOfParallelExecutions = 7;
+  for await (const { status, responseStatus, body } of asyncBufferedTransformer(
+    streamAllHttpCats(),
+    { numberOfParallelExecutions }
+  )) {
+    if (body) {
+      console.log(`Status ${status} has body of length ${body.byteLength}`);
+    } else {
+      console.log(`Status ${status} failed with status code ${responseStatus}`);
     }
-}
+  }
+};
 
-const inputStream: AsyncIterable<SomeStreamChunkToProcess> = // some input stream
+main().catch(console.log);
+```
 
-// must be >= 2 for the parallel execution to make sense.
-const noOfParallelExecutions = 50;
+Example output:
 
-//if you want to do more streamed processing of the output of your generator you can consume them directly
-for await(const output of asyncBufferedTransformer(yourAsyncGenerator(inputStream), {
-    noOfParallelExecutions
-})) {
-    //will log 0, 1, 2, 3 in order
-    console.log(output);
-}
+```
+# npx ts-node examples/fetch-http-cats.ts
+Fetching http cat for status 100
+Fetching http cat for status 101
+Fetching http cat for status 102
+Fetching http cat for status 103
+Fetching http cat for status 104
+Fetching http cat for status 105
+Fetching http cat for status 106
+Status 100 has body of length 38059
+Fetching http cat for status 107
+Status 101 has body of length 37527
+Fetching http cat for status 108
+Status 102 has body of length 45702
+Fetching http cat for status 109
+Status 103 has body of length 27995
+Fetching http cat for status 110
+Status 104 failed with status code 404
+Fetching http cat for status 111
+Status 105 failed with status code 404
+```
 
+We also provide the convenience functions `drainStream` and `collectAll` to easily collect all requests
+
+```typescript
 //will resolve once all elements have been processed or reject the first time there is an error in any processed chunk
 await drainStream(asyncBufferedTransformer(yourAsyncGenerator(inputStream), {
     noOfParallelExecutions
