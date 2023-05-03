@@ -25,17 +25,19 @@ internet citizen.
 
 You can run this using `npx ts-node examples/fetch-http-cats.ts`
 
+(Note: this library does _not_ depend on nodejs (and has zero dependencies), just this example)
+
 ```typescript
-import { asyncBufferedTransformer } from "../dist";
+import { PromiseWrapper, asyncBufferedTransformer } from "../dist";
 import fetch from "node-fetch";
 
-async function* streamAllHttpCats(): AsyncIterable<{
-  promise: Promise<{
+async function* streamAllHttpCats(): AsyncIterable<
+  PromiseWrapper<{
     status: number;
     responseStatus: number;
     body: ArrayBuffer | undefined;
-  }>;
-}> {
+  }>
+> {
   for (let status = 100; status < 600; status += 1) {
     // Note the wrapping into an object with the `promise` property
     yield {
