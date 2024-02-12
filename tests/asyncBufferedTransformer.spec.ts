@@ -141,7 +141,7 @@ const rejectOneAtIndex = async ({
 describe("asyncBufferedTransformer", () => {
   const numberOfParallelExecutions = 10;
 
-  it.each([-1, 1, 0])(
+  it.each([-10, -1])(
     "rejects wrong parallel executions",
     async (numberOfParallelExecutions) => {
       const numberOfItems = 50;
@@ -167,7 +167,7 @@ describe("asyncBufferedTransformer", () => {
   );
 
   it.each([asyncProcessor, syncProcessor])("should be able to process in-parallel", async (processor) => {
-    const numberOfParallelExecutions = 10;
+    const numberOfParallelExecutions = 1;
     const numberOfItems = 50;
     const counts: ProcessingCounts = {
       asyncProcessorsRunning: 0,
@@ -195,6 +195,38 @@ describe("asyncBufferedTransformer", () => {
       numberOfParallelExecutions
     );
   });
+
+  it.each([0, 1])("should be able to handle '%s' numberOfParallelExecutions serially", async (numberOfParallelExecutions) => {
+    const counts: ProcessingCounts = {
+        asyncProcessorsRunning: 0,
+        asyncProcessorsStarted: 0,
+        maxAsyncProcessorsRunning: 0,
+      };
+
+      const resolves: Fullfill[] = [];
+      const numberOfItems = 20;
+
+      const stream = (async () => {
+        let expected = 0;
+        for await (const value of asyncBufferedTransformer(
+          asyncProcessor(numberOfItems, counts, resolves),
+          {
+            numberOfParallelExecutions,
+          }
+        )) {
+          expect(value).toEqual(expected);
+          expect(value).toBeLessThan(numberOfItems);
+          expected += 1;
+        }
+      })();
+
+      await resolveAll(numberOfItems, resolves);
+      await stream;
+
+      expect(counts.maxAsyncProcessorsRunning).toEqual(
+        1
+      );
+    })
 
   it.each([
     0,

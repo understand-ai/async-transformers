@@ -27,11 +27,19 @@ export async function* asyncBufferedTransformer<T>(
   { numberOfParallelExecutions }: AsyncBufferedTransformerOptions,
   errorLogger: (message: string, ...params: any) => void = console.log
 ): AsyncIterable<T> {
-  if (numberOfParallelExecutions < 2) {
+  if (numberOfParallelExecutions < 0) {
     throw new Error(
-      "numberOfParallelExecutions, otherwise there is no parallel execution"
+      `numberOfParallelExecutions was ${numberOfParallelExecutions}, expected >= 0`
     );
   }
+
+  if (numberOfParallelExecutions === 0 || numberOfParallelExecutions === 1) {
+    for await (const wrapper of stream) {
+      yield await wrapper.promise
+    }
+    return;
+  }
+
 
   const bufferSize = numberOfParallelExecutions - 1;
   const buffer: (PromiseWrapper<T> | undefined)[] = new Array(bufferSize);
