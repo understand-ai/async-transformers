@@ -18,4 +18,5 @@ export {
   asyncBufferedTransformer,
   PromiseWrapper,
   collectAll,
+  drainStream
 } from "./asyncBufferedTransformer";
