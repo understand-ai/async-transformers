@@ -18,7 +18,11 @@ Async-Transformers is a tiny no-frills no-dependencies ts-first implementation o
 
 The method `asyncBufferedTransformer()` was inspired by [rust futures `buffered()`](https://docs.rs/futures/latest/futures/stream/trait.StreamExt.html#method.buffered).
 
-## Example
+## Usage
+
+```bash
+npm add @understand-ai/async-transformer
+```
 
 Here's an example that downloads all status code images from [http.cat](https://http.cat), but only 7 at a time to be a good
 internet citizen.
@@ -106,6 +110,6 @@ await drainStream(asyncBufferedTransformer(yourAsyncGenerator(inputStream), {
 
 //will resolve with all outputs in-order
 const results = await collectAll(asyncBufferedTransformer(yourAsyncGenerator(inputStream), {
-    noOfParallelExecutions:
+    noOfParallelExecutions
 }))
 ```

@@ -23,7 +23,7 @@ export type AsyncBufferedTransformerOptions = {
 };
 
 export async function* asyncBufferedTransformer<T>(
-  stream: AsyncIterable<PromiseWrapper<T>>,
+  stream: Iterable<PromiseWrapper<T>> | AsyncIterable<PromiseWrapper<T>>,
   { numberOfParallelExecutions }: AsyncBufferedTransformerOptions,
   errorLogger: (message: string, ...params: any) => void = console.log
 ): AsyncIterable<T> {

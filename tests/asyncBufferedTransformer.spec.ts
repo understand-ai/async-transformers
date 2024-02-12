@@ -56,6 +56,32 @@ async function* asyncProcessor(
   }
 }
 
+function* syncProcessor(
+  numberOfItems: number,
+  counts: ProcessingCounts,
+  fullfills: Fullfill[]
+): Iterable<PromiseWrapper<number>> {
+  for (let i = 0; i < numberOfItems; i += 1) {
+    const value = i;
+    const promise = new Promise<number>((resolve, reject) => {
+      counts.asyncProcessorsStarted += 1;
+      counts.asyncProcessorsRunning += 1;
+      counts.maxAsyncProcessorsRunning = Math.max(
+        counts.maxAsyncProcessorsRunning,
+        counts.asyncProcessorsRunning
+      );
+      fullfills.push({
+        resolve: () => {
+          counts.asyncProcessorsRunning -= 1;
+          resolve(value);
+        },
+        reject,
+      });
+    });
+    yield { promise };
+  }
+}
+
 const resolveAll = async (
   numberOfItems: number,
   fullfills: Fullfill[]
@@ -140,7 +166,7 @@ describe("asyncBufferedTransformer", () => {
     }
   );
 
-  it("should be able to process in-parallel", async () => {
+  it.each([asyncProcessor, syncProcessor])("should be able to process in-parallel", async (processor) => {
     const numberOfParallelExecutions = 10;
     const numberOfItems = 50;
     const counts: ProcessingCounts = {
@@ -154,7 +180,7 @@ describe("asyncBufferedTransformer", () => {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for await (const _ of asyncBufferedTransformer(
-      asyncProcessor(numberOfItems, counts, fullfills),
+      processor(numberOfItems, counts, fullfills),
       {
         numberOfParallelExecutions: numberOfParallelExecutions,
       }
@@ -169,6 +195,8 @@ describe("asyncBufferedTransformer", () => {
       numberOfParallelExecutions
     );
   });
+
+
 
   it.each([
     0,
