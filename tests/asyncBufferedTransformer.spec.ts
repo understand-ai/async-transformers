@@ -196,8 +196,6 @@ describe("asyncBufferedTransformer", () => {
     );
   });
 
-
-
   it.each([
     0,
     1,
