@@ -59,7 +59,7 @@ async function* streamAllHttpCats(): AsyncIterable<
 }
 
 const main = async () => {
-  // must be >= 2 for the parallel execution to make sense (otherwise throws an Error)
+  // if numberOfParallelExecutions === 0 || numberOfParallelExecutions === 1 we just serially execute
   const numberOfParallelExecutions = 7;
   for await (const { status, responseStatus, body } of asyncBufferedTransformer(
     streamAllHttpCats(),
