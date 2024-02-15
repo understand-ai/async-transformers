@@ -166,38 +166,43 @@ describe("asyncBufferedTransformer", () => {
     }
   );
 
-  it.each([asyncProcessor, syncProcessor])("should be able to process in-parallel", async (processor) => {
-    const numberOfParallelExecutions = 1;
-    const numberOfItems = 50;
-    const counts: ProcessingCounts = {
-      asyncProcessorsRunning: 0,
-      asyncProcessorsStarted: 0,
-      maxAsyncProcessorsRunning: 0,
-    };
-    const fullfills: Fullfill[] = [];
+  it.each([asyncProcessor, syncProcessor])(
+    "should be able to process in-parallel",
+    async (processor) => {
+      const numberOfParallelExecutions = 1;
+      const numberOfItems = 50;
+      const counts: ProcessingCounts = {
+        asyncProcessorsRunning: 0,
+        asyncProcessorsStarted: 0,
+        maxAsyncProcessorsRunning: 0,
+      };
+      const fullfills: Fullfill[] = [];
 
-    const resolveAllPromise = resolveAll(numberOfItems, fullfills);
+      const resolveAllPromise = resolveAll(numberOfItems, fullfills);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for await (const _ of asyncBufferedTransformer(
-      processor(numberOfItems, counts, fullfills),
-      {
-        numberOfParallelExecutions: numberOfParallelExecutions,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      for await (const _ of asyncBufferedTransformer(
+        processor(numberOfItems, counts, fullfills),
+        {
+          numberOfParallelExecutions: numberOfParallelExecutions,
+        }
+      )) {
+        // nop
       }
-    )) {
-      // nop
+
+      await resolveAllPromise;
+
+      expect(counts.asyncProcessorsStarted).toEqual(numberOfItems);
+      expect(counts.maxAsyncProcessorsRunning).toEqual(
+        numberOfParallelExecutions
+      );
     }
+  );
 
-    await resolveAllPromise;
-
-    expect(counts.asyncProcessorsStarted).toEqual(numberOfItems);
-    expect(counts.maxAsyncProcessorsRunning).toEqual(
-      numberOfParallelExecutions
-    );
-  });
-
-  it.each([0, 1])("should be able to handle '%s' numberOfParallelExecutions serially", async (numberOfParallelExecutions) => {
-    const counts: ProcessingCounts = {
+  it.each([0, 1])(
+    "should be able to handle '%s' numberOfParallelExecutions serially",
+    async (numberOfParallelExecutions) => {
+      const counts: ProcessingCounts = {
         asyncProcessorsRunning: 0,
         asyncProcessorsStarted: 0,
         maxAsyncProcessorsRunning: 0,
@@ -223,10 +228,9 @@ describe("asyncBufferedTransformer", () => {
       await resolveAll(numberOfItems, resolves);
       await stream;
 
-      expect(counts.maxAsyncProcessorsRunning).toEqual(
-        1
-      );
-    })
+      expect(counts.maxAsyncProcessorsRunning).toEqual(1);
+    }
+  );
 
   it.each([
     0,

@@ -35,11 +35,10 @@ export async function* asyncBufferedTransformer<T>(
 
   if (numberOfParallelExecutions === 0 || numberOfParallelExecutions === 1) {
     for await (const wrapper of stream) {
-      yield await wrapper.promise
+      yield await wrapper.promise;
     }
     return;
   }
-
 
   const bufferSize = numberOfParallelExecutions - 1;
   const buffer: (PromiseWrapper<T> | undefined)[] = new Array(bufferSize);
