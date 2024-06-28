@@ -1,6 +1,6 @@
 {
   "name": "@understand-ai/async-transformer",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "concurrent processing of async iterators",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

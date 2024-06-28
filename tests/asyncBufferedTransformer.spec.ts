@@ -393,4 +393,38 @@ describe("asyncBufferedTransformer", () => {
       await fullfillAllUntil;
     });
   });
+
+  it("does not produce unhandled promise rejections", async () => {
+    let didReject = false;
+
+    const secondPromiseThrows = async function* (): AsyncIterable<
+      PromiseWrapper<string>
+    > {
+      yield {
+        // eslint-disable-next-line no-async-promise-executor
+        promise: new Promise(async (resolve) => {
+          while (!didReject) {
+            await sleep(1);
+          }
+          resolve("done");
+        }),
+      };
+      yield {
+        promise: new Promise((_resolve, reject) => {
+          setTimeout(() => {
+            didReject = true;
+            reject("we immediately reject before first await");
+          }, 3);
+        }),
+      };
+    };
+
+    await expect(
+      collectAll(
+        asyncBufferedTransformer(secondPromiseThrows(), {
+          numberOfParallelExecutions: 10,
+        })
+      )
+    ).rejects.toBeTruthy();
+  });
 });
