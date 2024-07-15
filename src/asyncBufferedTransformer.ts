@@ -14,6 +14,8 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRA
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+import { HandledRejectionPromise } from "./handledRejectionPromise";
+
 export type PromiseWrapper<T> = {
   promise: Promise<T>;
 };
@@ -41,7 +43,9 @@ export async function* asyncBufferedTransformer<T>(
   }
 
   const bufferSize = numberOfParallelExecutions - 1;
-  const buffer: (PromiseWrapper<T> | undefined)[] = new Array(bufferSize);
+  const buffer: (HandledRejectionPromise<T> | undefined)[] = new Array(
+    bufferSize
+  );
   let index = 0;
   try {
     for await (const wrapper of stream) {
@@ -52,7 +56,7 @@ export async function* asyncBufferedTransformer<T>(
         yield await existingPromise.promise;
       }
 
-      buffer[index] = wrapper;
+      buffer[index] = new HandledRejectionPromise(wrapper.promise);
       index = (index + 1) % bufferSize;
     }
 
