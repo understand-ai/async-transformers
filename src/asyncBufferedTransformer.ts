@@ -93,7 +93,7 @@ export async function* asyncBufferedTransformer<T>(
 }
 
 export const drainStream = async <T>(
-  streamToDrain: AsyncIterable<T>
+  streamToDrain: AsyncIterable<T> | Iterable<T>
 ): Promise<void> => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   for await (const _ of streamToDrain) {
@@ -104,7 +104,7 @@ export const drainStream = async <T>(
 };
 
 export const collectAll = async <T>(
-  streamToCollect: AsyncIterable<T>
+  streamToCollect: AsyncIterable<T> | Iterable<T>
 ): Promise<T[]> => {
   const results = [];
   for await (const output of streamToCollect) {

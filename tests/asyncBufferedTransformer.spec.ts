@@ -489,4 +489,15 @@ describe("asyncBufferedTransformer", () => {
       )
     ).rejects.toBeTruthy();
   });
+
+  it("can collect / drain an iterable as well", async () => {
+    const iterable = function* (): Iterable<string> {
+      yield "something";
+    };
+
+    const collected = await collectAll(iterable());
+
+    expect(collected).toEqual(["something"]);
+    await expect(drainStream(iterable())).resolves.toBeUndefined();
+  });
 });
