@@ -32,7 +32,7 @@ export class HandledRejectionPromise<T> {
    * If you call this, you must also directly await it. Otherwise, you have the
    * same issue again.
    */
-  public get promise(): Promise<T> {
+  public get promise(): Promise<{ value: T; wrapper: HandledRejectionPromise<T> }> {
     return this.storedPromise.then(() => {
       const value = this.value;
       if (!value) {
@@ -44,7 +44,7 @@ export class HandledRejectionPromise<T> {
       // eslint-disable-next-line promise/always-return
       switch (value.type) {
         case "resolved":
-          return value.value;
+          return { value: value.value, wrapper: this };
         case "rejected":
           throw value.reason;
       }

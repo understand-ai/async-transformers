@@ -13,10 +13,17 @@ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVE
 LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-
-export {
+import {
+  asyncBufferedTransformer,
+  collectAll,
+  drainStream,
+  PromiseWrapper,
+} from "./asyncBufferedTransformer";
+import { asyncBufferedUnorderedTransformer } from "./asyncBufferedUnorderedTransformer";
+export { 
+  asyncBufferedUnorderedTransformer,
   asyncBufferedTransformer,
   PromiseWrapper,
   collectAll,
-  drainStream,
-} from "./asyncBufferedTransformer";
+  drainStream
+};

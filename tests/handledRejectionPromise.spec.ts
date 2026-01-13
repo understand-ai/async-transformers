@@ -4,7 +4,9 @@ describe(HandledRejectionPromise.name, () => {
   it("handles resolved Promises", async () => {
     const handled = new HandledRejectionPromise(Promise.resolve(3));
 
-    await expect(handled.promise).resolves.toBe(3);
+    const result = await handled.promise;
+    expect(result.value).toBe(3);
+    expect(result.wrapper).toBe(handled);
   });
 
   it("handles rejected Promises", async () => {
@@ -22,7 +24,9 @@ describe(HandledRejectionPromise.name, () => {
       new Promise((resolve) => setTimeout(() => resolve(4), 1))
     );
 
-    await expect(handled.promise).resolves.toBe(4);
+    const result = await handled.promise;
+    expect(result.value).toBe(4);
+    expect(result.wrapper).toBe(handled);
   });
 
   it("handles Promises that reject (later)", async () => {
